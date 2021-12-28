@@ -25,6 +25,6 @@
 
 ## 截图
 
-![screenshot](img\screenshot.png)
+![screenshot](https://github.com/iamyzc/doudian-scripts/blob/main/img/screenshot.png)
 
 
