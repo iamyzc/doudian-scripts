@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      0.3
+// @version      0.4
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
 // @author       羊种草 706597125@qq.com
 // @match        https://fxg.jinritemai.com/ffa/morder/order/list
@@ -54,6 +54,8 @@ function extractOrderDiv(div) {
   if (spanList.length >= 3) {
     // console.log(spanList[1].innerText)
     resp.sourceType = spanList[2].innerText.match(/推广类型：\s*(.*)/)[1]
+  } else {
+      resp.sourceType = '-'
   }
 
   // content
@@ -70,11 +72,11 @@ function extractOrderDiv(div) {
 
   resp.nickname = content.querySelector('a[class^="table_nickname"]').innerText
   resp.contact = content.querySelector('div[class^="index_locationDetail"]').innerText
-  let contactList = resp.contact.split('，')
+  let contactList = resp.contact.split('\n')
   if (contactList.length >= 3) {
     resp.contactName = contactList[0]
     resp.contactPhone = contactList[1]
-    resp.contactAddress = contactList[2]
+    resp.contactAddress = contactList[2].replace(',','')
   }
   resp.status = div.querySelector('div:nth-of-type(2) > div[class^="index_cell"]:nth-of-type(4) > div:first-of-type').innerText
   resp.status_id = div.getAttribute('data-kora_order_status')
@@ -197,6 +199,26 @@ function copyOrderInfo (divid) {
     }else {
         showToast('复制失败!')
     }
+    getJSON(`https://fxg.jinritemai.com/api/order/getOrderLogistics?order_id=`+divid, function (data) {
+        console.log(data)
+    });
+}
+
+function getJSON(url, callback) {
+    GM_xmlhttpRequest({
+        method: 'GET',
+        url: url,
+        headers: {
+            'Accept': 'application/json'
+        },
+        onload: function (response) {
+            if (response.status >= 200 && response.status < 400) {
+                callback(JSON.parse(response.responseText), url);
+            } else {
+                callback(false, url);
+            }
+        }
+    });
 }
 
 function copyMgr(data) {

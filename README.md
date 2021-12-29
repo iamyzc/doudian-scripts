@@ -9,6 +9,12 @@
 - 一键复制订单信息，发货信息是隐藏状态，复制的是隐藏的，先显示隐藏信息。
 
 ## 更新
+
+### 2021-12-29 ：
+
+- 修复：下载订单时地址中有“，”格式错误问题
+- 修复：下载订单时，收货信息分割问题
+
 ### 2021-12-27 ：
 
 - 修复下载订单时，订单号数字过长隐藏问题
@@ -25,6 +31,4 @@
 
 ## 截图
 
-![screenshot](img\screenshot.png)
-
-
+![screenshot](https://github.com/iamyzc/doudian-scripts/blob/main/img/screenshot.png)
