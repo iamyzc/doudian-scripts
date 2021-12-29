@@ -32,8 +32,3 @@
 ## 截图
 
 ![screenshot](https://github.com/iamyzc/doudian-scripts/blob/main/img/screenshot.png)
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 398c43d11ef00dc8937a00d21e45781cf97fdf05
