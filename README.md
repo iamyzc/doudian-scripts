@@ -2,6 +2,11 @@
 
  请使用谷歌浏览器安装油猴拓展后访问抖店。
 
+## 反馈建议
+#### 加微信:YANG706597125
+![screenshot](https://s2.loli.net/2022/01/20/keFMgb3iKC5lPr1.jpg)
+
+
 ## 功能：
 
 - 一键下载订单信息，导出csv。
@@ -9,6 +14,11 @@
 - 一键复制订单信息，发货信息是隐藏状态，复制的是隐藏的，先显示隐藏信息。
 
 ## 更新
+
+### 2021-1-9 ：
+
+- 修复：引入库失效脚本失效的问题，去除了引入的第三方库
+- 优化：导出订单，头部使用文字
 
 ### 2021-12-29 ：
 
@@ -31,4 +41,9 @@
 
 ## 截图
 
-![screenshot](https://github.com/iamyzc/doudian-scripts/blob/main/img/screenshot.png)
+![screenshot](https://s2.loli.net/2022/01/20/kPRwsLhp5vTOVAe.png)
+
+## 赞助
+
+#### 它对你确实有帮助，欢迎给我打赏一杯咖啡哈~
+![screenshot](https://s2.loli.net/2022/01/20/OiAkZD3H1GKojI5.jpg)

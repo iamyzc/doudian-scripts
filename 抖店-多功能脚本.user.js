@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      0.4
+// @version      0.5
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
 // @author       羊种草 706597125@qq.com
 // @match        https://fxg.jinritemai.com/ffa/morder/order/list
 // @icon         https://lf1-fe.ecombdstatic.com/obj/eden-cn/upqphj/homepage/icon.svg
-// @require      https://greasyfork.org/scripts/433586-simpletools/code/SimpleTools.js?version=977251
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -14,16 +13,17 @@
 // ==/UserScript==
 
 async function getShopName() {
-  await WaitUntil(() => {
-    return !!document.querySelector('div.headerShopName')
-  })
+  if(!document.querySelector('div.headerShopName')){
+      return false
+  }
 
   return document.querySelector('div.headerShopName').innerText
 }
 
 function toCsvString(headers, dataList) {
   let rows = []
-  rows.push(headers)
+  let headersStr = ['订单编号', '下单时间', '推广类型', '商品', '商品规格', '商品价格', '商品数量', '商品金额', '买家昵称', '收件人姓名', '收件人手机号', '收件地址', '收件人信息', '订单状态', '商品图片']
+  rows.push(headersStr)
   for (let d of dataList) {
     let row = []
     for (let h of headers) {
@@ -108,9 +108,9 @@ async function downloadCurrentPage() {
 // 添加“下载订单”按钮
 async function addDownloadButton() {
   console.log('增加下载订单按钮')
-  await WaitUntil(() => {
-    return !!document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')
-  })
+   if(!document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')){
+       return false
+   }
 
   let div = document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')
 
@@ -148,9 +148,9 @@ async function addDownloadButton() {
 //添加复制订单信息按钮
 async function addCopyOrderInfoButton() {
   console.log("增加复制订单信息按钮")
-  await WaitUntil(() => {
-    return !!document.querySelector('div[class^="index_rowHeader"] div[class^="index_RowHeader"]')
-  })
+  if(!document.querySelector('div.auxo-spin-container > div:nth-of-type(2) > div > div[data-kora_order_status]')){
+    return false
+  }
   let divList = document.querySelectorAll('div.auxo-spin-container > div:nth-of-type(2) > div > div[data-kora_order_status]')
   //console.log(divList)
   for (let div of divList) {
@@ -195,13 +195,10 @@ function copyOrderInfo (divid) {
     let copyInfo = data['orderId'] + '\n' +  data['contact'] +  '\n' + data['title'] +   ' ' +data['sku'] +  '\n' + data['status']
     var c = copyMgr(copyInfo);
     if(c){
-        showToast('复制成功')
+        console.log('复制成功')
     }else {
-        showToast('复制失败!')
+        console.log('复制失败!')
     }
-    getJSON(`https://fxg.jinritemai.com/api/order/getOrderLogistics?order_id=`+divid, function (data) {
-        console.log(data)
-    });
 }
 
 function getJSON(url, callback) {
@@ -242,9 +239,9 @@ function copyMgr(data) {
 
 async function addTableId() {
   console.log("增加列表 ID")
-  await WaitUntil(() => {
-    return !!document.querySelector('div[class^="index_tableRow"]')
-  })
+if(!document.querySelector('div[class^="index_tableRow"]')){
+   return false
+}
   let divList = document.querySelectorAll('div[class^="index_tableRow"]')
   for (let div of divList) {
       //console.log('addTableId',div)
@@ -258,7 +255,8 @@ function addButton () {
    addTableId()
    addDownloadButton()
    addCopyOrderInfoButton()
-   Sleep(10)
+   setTimeout(function (){
+   },10000)
 }
 
 (async function () {
