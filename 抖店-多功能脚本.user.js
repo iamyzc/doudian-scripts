@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      0.5
+// @version      0.8
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
 // @author       羊种草 706597125@qq.com
 // @match        https://fxg.jinritemai.com/ffa/morder/order/list
@@ -22,7 +22,7 @@ async function getShopName() {
 
 function toCsvString(headers, dataList) {
   let rows = []
-  let headersStr = ['订单编号', '下单时间', '推广类型', '商品', '商品规格', '商品价格', '商品数量', '商品金额', '买家昵称', '收件人姓名', '收件人手机号', '收件地址', '收件人信息', '订单状态', '商品图片']
+  let headersStr = ['订单编号', '下单时间', '推广类型', '商品', '商品规格', '商品价格', '商品数量', '商品金额', '买家昵称', '收件人姓名', '收件人手机号', '收件地址', '收件人信息', '订单状态']
   rows.push(headersStr)
   for (let d of dataList) {
     let row = []
@@ -43,16 +43,13 @@ function extractOrderDiv(div) {
   let header = div.querySelector('div[class^="index_rowHeader"] > div[class^="index_RowHeader"] > div[class^="index_leftWrapper"]')
   let spanList = header.querySelectorAll('span')
   if (spanList.length >= 1) {
-    // console.log(spanList[0].innerText)
     resp.orderId = spanList[0].innerText.match(/订单号\s*(\d+)/)[1]
     resp.extOrderId = '`'+spanList[0].innerText.match(/订单号\s*(\d+)/)[1]
   }
   if (spanList.length >= 2) {
-    // console.log(spanList[1].innerText)
     resp.orderTime = spanList[1].innerText.match(/下单时间\s*([\d\/ :]+)/)[1]
   }
   if (spanList.length >= 3) {
-    // console.log(spanList[1].innerText)
     resp.sourceType = spanList[2].innerText.match(/推广类型：\s*(.*)/)[1]
   } else {
       resp.sourceType = '-'
@@ -61,7 +58,6 @@ function extractOrderDiv(div) {
   // content
   let content = div.querySelector('div:nth-of-type(2)')
   let product = content.querySelector('div[class^="style_productItem"] > div[class^="style_content"]')
-  resp.image = product.querySelector('img').getAttribute('src')
   resp.title = product.querySelector('div[class^="style_detail"] > div[class^="style_name"]').innerText
   resp.sku = product.querySelector('div[class^="style_property"] > div[class^="style_desc"]').innerText
 
@@ -72,11 +68,12 @@ function extractOrderDiv(div) {
 
   resp.nickname = content.querySelector('a[class^="table_nickname"]').innerText
   resp.contact = content.querySelector('div[class^="index_locationDetail"]').innerText
+  resp.contact = resp.contact.myReplace(',','').myReplace('#','')
   let contactList = resp.contact.split('\n')
   if (contactList.length >= 3) {
-    resp.contactName = contactList[0]
+    resp.contactName = contactList[0].myReplace(',','').myReplace('#','')
     resp.contactPhone = contactList[1]
-    resp.contactAddress = contactList[2].replace(',','')
+    resp.contactAddress = contactList[2].myReplace(',','').myReplace('#','')
   }
   resp.status = div.querySelector('div:nth-of-type(2) > div[class^="index_cell"]:nth-of-type(4) > div:first-of-type').innerText
   resp.status_id = div.getAttribute('data-kora_order_status')
@@ -87,7 +84,7 @@ function extractOrderDiv(div) {
 async function downloadCurrentPage() {
   let divList = document.querySelectorAll('div.auxo-spin-container > div:nth-of-type(2) > div > div[data-kora_order_status]')
   let dataList = []
-  let headers = ['extOrderId', 'orderTime', 'sourceType', 'title', 'sku', 'unitPrice', 'number', 'payAmount', 'nickname', 'contactName', 'contactPhone', 'contactAddress', 'contact', 'status', 'image']
+  let headers = ['extOrderId', 'orderTime', 'sourceType', 'title', 'sku', 'unitPrice', 'number', 'payAmount', 'nickname', 'contactName', 'contactPhone', 'contactAddress', 'contact', 'status']
   for (let div of divList) {
     let data = extractOrderDiv(div)
     //console.log(data)
@@ -97,10 +94,11 @@ async function downloadCurrentPage() {
   //console.log('csvString', csvString)
 
   let shopName = await getShopName()
-
+  var nowDate = new Date();
+  var date = nowDate.getFullYear()+ '_' + (nowDate.getMonth()+1) + '_' +nowDate.getDate() + '_' + nowDate.getHours() + '_' + nowDate.getMinutes() + '_'+ nowDate.getSeconds();
   let link = document.createElement('a')
   link.setAttribute('href', csvString)
-  let filename = `${shopName}-订单`
+  let filename = `${shopName}-订单-${date}`
   link.setAttribute('download', filename + '.csv')
   link.click()
 }
@@ -239,15 +237,20 @@ function copyMgr(data) {
 
 async function addTableId() {
   console.log("增加列表 ID")
-if(!document.querySelector('div[class^="index_tableRow"]')){
-   return false
-}
+  if(!document.querySelector('div[class^="index_tableRow"]')){
+    return false
+  }
   let divList = document.querySelectorAll('div[class^="index_tableRow"]')
   for (let div of divList) {
       //console.log('addTableId',div)
       let data = extractOrderDiv(div)
       div.setAttribute('id', data['orderId'])
   }
+}
+
+String.prototype.myReplace=function(f,e){//吧f替换成e
+    var reg=new RegExp(f,"g"); //创建正则RegExp对象
+    return this.replace(reg,e);
 }
 
 function addButton () {
