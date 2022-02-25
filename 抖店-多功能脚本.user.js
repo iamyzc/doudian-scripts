@@ -1,13 +1,11 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      0.8
+// @version      0.9
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
 // @author       羊种草 706597125@qq.com
 // @match        https://fxg.jinritemai.com/ffa/morder/order/list
 // @icon         https://lf1-fe.ecombdstatic.com/obj/eden-cn/upqphj/homepage/icon.svg
 // @grant        GM_xmlhttpRequest
-// @grant        GM_setValue
-// @grant        GM_getValue
 // @namespace    doudian-plus
 // @run-at document-end
 // ==/UserScript==
@@ -56,18 +54,18 @@ function extractOrderDiv(div) {
   }
 
   // content
-  let content = div.querySelector('div:nth-of-type(2)')
-  let product = content.querySelector('div[class^="style_productItem"] > div[class^="style_content"]')
+  //let content = div.querySelector('div:nth-of-type(2)')
+  let product = div.querySelector('div[class^="style_productItem"] > div[class^="style_content"]')
   resp.title = product.querySelector('div[class^="style_detail"] > div[class^="style_name"]').innerText
   resp.sku = product.querySelector('div[class^="style_property"] > div[class^="style_desc"]').innerText
 
-  resp.unitPrice = content.querySelector('div[class^="index_cellRow"] > div[class^="index_cell"]:nth-of-type(2) > div[class^="table_comboAmount"]').innerText
-  resp.number = content.querySelector('div[class^="index_cellRow"] > div[class^="index_cell"]:nth-of-type(2) > div[class^="table_comboNum"]').innerText
+  resp.unitPrice = div.querySelector('div[class^="index_cellRow"] > div[class^="index_cell"]:nth-of-type(2) > div[class^="table_comboAmount"]').innerText
+  resp.number = div.querySelector('div[class^="index_cellRow"] > div[class^="index_cell"]:nth-of-type(2) > div[class^="table_comboNum"]').innerText
 
-  resp.payAmount = content.querySelector('div[class^="index_payAmount"]').innerText
+  resp.payAmount = div.querySelector('div[class^="index_payAmount"]').innerText
 
-  resp.nickname = content.querySelector('a[class^="table_nickname"]').innerText
-  resp.contact = content.querySelector('div[class^="index_locationDetail"]').innerText
+  resp.nickname = div.querySelector('a[class^="table_nickname"]').innerText
+  resp.contact = div.querySelector('div[class^="index_locationDetail"]').innerText
   resp.contact = resp.contact.myReplace(',','').myReplace('#','')
   let contactList = resp.contact.split('\n')
   if (contactList.length >= 3) {
@@ -138,7 +136,7 @@ async function addDownloadButton() {
   btn3.innerHTML = `<span>更新按钮</span>`
   div.appendChild(btn3)
   btn3.onclick = (e) => {
-    console.log('添加复制按钮', e)
+    console.log('添加复制按钮')
     addCopyOrderInfoButton()
   }
 }
