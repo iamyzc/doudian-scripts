@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      0.9
+// @version      1.0
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
 // @author       羊种草 706597125@qq.com
 // @match        https://fxg.jinritemai.com/ffa/morder/order/list
@@ -41,8 +41,8 @@ function extractOrderDiv(div) {
   let header = div.querySelector('div[class^="index_rowHeader"] > div[class^="index_RowHeader"] > div[class^="index_leftWrapper"]')
   let spanList = header.querySelectorAll('span')
   if (spanList.length >= 1) {
-    resp.orderId = spanList[0].innerText.match(/订单号\s*(\d+)/)[1]
-    resp.extOrderId = '`'+spanList[0].innerText.match(/订单号\s*(\d+)/)[1]
+    resp.orderId = spanList[0].innerText.match(/订单编号\s*(\d+)/)[1]
+    resp.extOrderId = '`'+spanList[0].innerText.match(/订单编号\s*(\d+)/)[1]
   }
   if (spanList.length >= 2) {
     resp.orderTime = spanList[1].innerText.match(/下单时间\s*([\d\/ :]+)/)[1]
