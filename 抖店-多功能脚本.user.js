@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      1.0
+// @version      1.1
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
 // @author       羊种草 706597125@qq.com
-// @match        https://fxg.jinritemai.com/ffa/morder/order/list
+// @match        https://fxg.jinritemai.com/ffa/morder/order/*
 // @icon         https://lf1-fe.ecombdstatic.com/obj/eden-cn/upqphj/homepage/icon.svg
 // @grant        GM_xmlhttpRequest
 // @namespace    doudian-plus
@@ -114,6 +114,7 @@ async function addDownloadButton() {
   btn.setAttribute('data-id', '下载订单')
   btn.setAttribute('_cid', 'export-orders')
   btn.innerHTML = `<span>下载订单</span>`
+  btn.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
   div.appendChild(btn)
 
   btn.onclick = (e) => {
@@ -121,19 +122,21 @@ async function addDownloadButton() {
   }
 
   let btn2 = div.querySelector('button').cloneNode(true)
-  btn2.setAttribute('data-id', '批量查看隐藏信息')
+  btn2.setAttribute('data-id', '批量显示加密信息')
   btn2.setAttribute('_cid', 'show-orders-info')
-  btn2.innerHTML = `<span>查看隐藏信息</span>`
+  btn2.innerHTML = `<span>批量显示加密信息</span>`
+  btn2.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
   div.appendChild(btn2)
   btn2.onclick = (e) => {
-    console.log('批量查看隐藏信息', e)
+    console.log('批量查看隐藏信息')
     showUserAddress()
   }
 
   let btn3 = div.querySelector('button').cloneNode(true)
-  btn3.setAttribute('data-id', '更新复制按钮')
+  btn3.setAttribute('data-id', '添加复制订单按钮')
   btn3.setAttribute('_cid', 'update-button')
-  btn3.innerHTML = `<span>更新按钮</span>`
+  btn3.innerHTML = `<span>添加复制订单按钮</span>`
+  btn3.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
   div.appendChild(btn3)
   btn3.onclick = (e) => {
     console.log('添加复制按钮')
@@ -154,18 +157,27 @@ async function addCopyOrderInfoButton() {
     let btnDiv = document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')
     let btn = btnDiv.querySelector('button').cloneNode(true)
     let divHeader = div.querySelector('div[class^="index_rowHeader"] div[class^="index_RowHeader"]')
-    let haveCopyBtn = divHeader.querySelector('button[data-id="复制信息"]')
+    let haveCopyBtn = divHeader.querySelector('button[data-id="复制订单"]')
     if(haveCopyBtn == null){
-        btn.setAttribute('data-id', '复制信息')
+        btn.setAttribute('data-id', '复制订单')
         btn.setAttribute('_cid', 'copy-order-info')
-        btn.innerHTML = `<span>复制信息</span>`
+        btn.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
+        btn.innerHTML = `<span>复制订单</span>`
         divHeader.appendChild(btn)
         btn.onclick = (e) => {
             copyOrderInfo(tableRowId)
+            //getWuliu(tableRowId)
         }
     }
-
   }
+  showTips('添加复制订单按钮完成')
+}
+
+function getWuliu (divid) {
+    console.log(divid)
+    getJSON('https://fxg.jinritemai.com/api/order/getOrderLogistics?order_id=4910486841693896079',function(e){
+        console.log(e)
+    })
 }
 
 // 批量显示敏感信息
@@ -192,8 +204,10 @@ function copyOrderInfo (divid) {
     var c = copyMgr(copyInfo);
     if(c){
         console.log('复制成功')
+        showTips('复制成功')
     }else {
         console.log('复制失败!')
+        showTips('复制失败!',2)
     }
 }
 
@@ -249,6 +263,22 @@ async function addTableId() {
 String.prototype.myReplace=function(f,e){//吧f替换成e
     var reg=new RegExp(f,"g"); //创建正则RegExp对象
     return this.replace(reg,e);
+}
+
+function showTips (msg,type=1) {
+   if(!document.querySelector('input[class^="auxo-input"]')){
+       return false
+   }
+   let inputDiv =  document.querySelector('input[class^="auxo-input"]')
+   if(type == 1){
+       inputDiv.value = '✔️ '+msg
+   } else {
+       inputDiv.value = '❗ '+msg
+   }
+
+   setTimeout(function () {
+     inputDiv.value = ''
+   }, 3000);
 }
 
 function addButton () {
