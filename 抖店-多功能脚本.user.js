@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      1.2
+// @version      1.3
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
 // @author       羊种草 706597125@qq.com
 // @match        https://fxg.jinritemai.com/ffa/morder/order/*
@@ -20,7 +20,7 @@ async function getShopName() {
 
 function toCsvString(headers, dataList) {
   let rows = []
-  let headersStr = ['订单编号', '下单时间', '推广类型', '商品', '商品规格', '商品价格', '商品数量', '商品金额', '买家昵称', '收件人姓名', '收件人手机号', '收件地址', '收件人信息', '订单状态']
+  let headersStr = ['订单编号', '下单时间', '推广类型', '商品', '商品规格', '商品价格', '商品数量', '商品金额', '买家昵称', '收件人姓名', '收件人手机号', '收件地址', '收件人信息', '订单状态', '商家备注', '买家留言']
   rows.push(headersStr)
   for (let d of dataList) {
     let row = []
@@ -42,7 +42,7 @@ function extractOrderDiv(div) {
   let spanList = header.querySelectorAll('span')
   if (spanList.length >= 1) {
     resp.orderId = spanList[0].innerText.match(/订单编号\s*(\d+)/)[1]
-    resp.extOrderId = '`'+spanList[0].innerText.match(/订单编号\s*(\d+)/)[1]
+    resp.extOrderId = "'"+spanList[0].innerText.match(/订单编号\s*(\d+)/)[1]
   }
   if (spanList.length >= 2) {
     resp.orderTime = spanList[1].innerText.match(/下单时间\s*([\d\/ :]+)/)[1]
@@ -75,6 +75,22 @@ function extractOrderDiv(div) {
   }
   resp.status = div.querySelector('div:nth-of-type(2) > div[class^="index_cell"]:nth-of-type(4) > div:first-of-type').innerText
   resp.status_id = div.getAttribute('data-kora_order_status')
+
+  let footer = div.querySelector('div[class^="index_footer"]')
+  resp.shop_remark = ''
+  resp.buyer_remark = ''
+  if(footer){
+      let footerContent = footer.querySelectorAll('div[class^="index_footerContent"]')
+      for (let remarkdiv of footerContent) {
+          let remartext = remarkdiv.innerText;
+          if(remartext.indexOf('商家备注') > -1){
+              resp.shop_remark = remartext.myReplace('商家备注\n','')
+          }
+          if(remartext.indexOf('买家留言') > -1){
+              resp.buyer_remark = remartext.myReplace('买家留言\n','')
+          }
+      }
+  }
   return resp
 }
 
@@ -82,14 +98,13 @@ function extractOrderDiv(div) {
 async function downloadCurrentPage() {
   let divList = document.querySelectorAll('div.auxo-spin-container > div:nth-of-type(2) > div > div[data-kora_order_status]')
   let dataList = []
-  let headers = ['extOrderId', 'orderTime', 'sourceType', 'title', 'sku', 'unitPrice', 'number', 'payAmount', 'nickname', 'contactName', 'contactPhone', 'contactAddress', 'contact', 'status']
+  let headers = ['extOrderId', 'orderTime', 'sourceType', 'title', 'sku', 'unitPrice', 'number', 'payAmount', 'nickname', 'contactName', 'contactPhone', 'contactAddress', 'contact', 'status', 'shop_remark', 'buyer_remark']
   for (let div of divList) {
     let data = extractOrderDiv(div)
     //console.log(data)
     dataList.push(data)
   }
   const csvString = toCsvString(headers, dataList)
-  //console.log('csvString', csvString)
 
   let shopName = await getShopName()
   var nowDate = new Date();
