@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      1.3
+// @version      1.4
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
-// @author       羊种草 706597125@qq.com
-// @match        https://fxg.jinritemai.com/ffa/morder/order/*
+// @author       羊种草 VX:YANG706597125
+// @match        https://fxg.jinritemai.com/ffa/*
 // @icon         https://lf1-fe.ecombdstatic.com/obj/eden-cn/upqphj/homepage/icon.svg
 // @grant        GM_xmlhttpRequest
 // @namespace    doudian-plus
@@ -127,6 +127,7 @@ async function addDownloadButton() {
 
   var divDplus = document.createElement('div');
   divDplus.className = 'auxo-alert auxo-alert-warning'
+  divDplus.style = 'margin-bottom: 10px;border: 2px solid red;'
   var divDplusButtonGroup = document.createElement('div');
   divDplusButtonGroup.className = 'index_buttonGroup__1tLG2 index_batchOperation'
   divDplus.appendChild(divDplusButtonGroup)
@@ -296,17 +297,8 @@ function showTips (msg,type=1) {
    }, 3000);
 }
 
-function addButton () {
-   console.log('添加按钮')
-   addTableId()
-   addDownloadButton()
-   addCopyOrderInfoButton()
-   setTimeout(function (){
-   },10000)
-}
-
-(async function () {
-  'use strict';
+function reflesh(){
+    console.log('3秒后添加按钮')
    setTimeout(function (){
        addButton()
        let auxoDiv = document.querySelector('div[class^="index_RichTable"] div[class^="index_ListWithPagination"] div[class^="auxo-spin-container"]')
@@ -318,4 +310,30 @@ function addButton () {
              }
        }, false);
    }, 3000 )
+}
+
+//监视地址栏
+function registerPopstate(){
+    console.log('监听地址栏')
+    window.addEventListener('popstate',function(e){
+        var href = window.location.href
+        if(href.indexOf('morder/order/list') > 0){
+            console.log('匹配到 订单管理')
+            reflesh()
+        }
+    })
+}
+
+function addButton () {
+   console.log('添加按钮')
+   addTableId()
+   addDownloadButton()
+   addCopyOrderInfoButton()
+   setTimeout(function (){
+   },10000)
+}
+
+(async function () {
+    'use strict';
+    registerPopstate()
 })();
