@@ -1,23 +1,23 @@
 // ==UserScript==
 // @name         抖店-多功能脚本
-// @version      1.5
+// @version      1.6
 // @description  一键复制订单信息，批量显示隐藏信息，一键下载订单
 // @author       羊种草 VX:YANG706597125
-// @match        https://fxg.jinritemai.com/ffa/*
+// @match        https://fxg.jinritemai.com/ffa/morder/order/list*
 // @icon         https://lf1-fe.ecombdstatic.com/obj/eden-cn/upqphj/homepage/icon.svg
 // @grant        GM_xmlhttpRequest
 // @namespace    doudian-plus
 // @run-at document-end
 // ==/UserScript==
- 
+
 async function getShopName() {
   if(!document.querySelector('div.headerShopName')){
       return false
   }
- 
+
   return document.querySelector('div.headerShopName').innerText
 }
- 
+
 function toCsvString(dataList) {
   let rows = []
   let headers1 = ['extOrderId', 'orderTime', 'sourceType']
@@ -45,7 +45,7 @@ function toCsvString(dataList) {
  }).join('\n')
  return 'data:text/csv;charset=utf-8,\ufeff' + rows
 }
- 
+
 // 将订单 div里的内容处理成对象
 function extractOrderDiv(div) {
   let resp = {}
@@ -63,7 +63,7 @@ function extractOrderDiv(div) {
   } else {
       resp.sourceType = '-'
   }
- 
+
   // content
   //let content = div.querySelector('div:nth-of-type(2)')
   resp.products = []
@@ -78,7 +78,7 @@ function extractOrderDiv(div) {
           resp.products.push(productsItem)
       }
   }
- 
+
   resp.payAmount = div.querySelector('div[class^="index_payAmount"]').innerText
   resp.nickname = div.querySelector('a[class^="table_nickname"]').innerText
   resp.contact = div.querySelector('div[class^="index_locationDetail"]').innerText
@@ -91,7 +91,7 @@ function extractOrderDiv(div) {
   }
   resp.status = div.querySelector('div:nth-of-type(2) > div[class^="index_cell"]:nth-of-type(4) > div:first-of-type').innerText
   resp.status_id = div.getAttribute('data-kora_order_status')
- 
+
   let footer = div.querySelector('div[class^="index_footer"]')
   resp.shop_remark = ''
   resp.buyer_remark = ''
@@ -109,7 +109,7 @@ function extractOrderDiv(div) {
   }
   return resp
 }
- 
+
 //下载订单
 async function downloadCurrentPage() {
   let divList = document.querySelectorAll('div.auxo-spin-container > div:nth-of-type(2) > div > div[data-kora_order_status]')
@@ -129,48 +129,48 @@ async function downloadCurrentPage() {
   link.setAttribute('download', filename + '.csv')
   link.click()
 }
- 
+
 // 添加“下载订单”按钮
 async function addDownloadButton() {
   console.log('增加下载订单按钮')
    if(!document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')){
        return false
    }
- 
+
   let div = document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')
- 
+
   var divDplus = document.createElement('div');
   divDplus.className = 'auxo-alert auxo-alert-warning'
   divDplus.style = 'margin-bottom: 10px;border: 2px solid red;'
   var divDplusButtonGroup = document.createElement('div');
   divDplusButtonGroup.className = 'index_buttonGroup__1tLG2 index_batchOperation'
   divDplus.appendChild(divDplusButtonGroup)
- 
- 
+
+
   let btn = div.querySelector('button').cloneNode(true)
-  btn.setAttribute('data-id', '下载订单')
+  btn.setAttribute('data-id', '⬇️下载订单')
   btn.setAttribute('_cid', 'export-orders')
   btn.innerHTML = `<span>下载订单</span>`
   btn.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
   divDplusButtonGroup.appendChild(btn)
- 
+
   btn.onclick = (e) => {
     downloadCurrentPage()
   }
- 
+
   let btn2 = div.querySelector('button').cloneNode(true)
-  btn2.setAttribute('data-id', '批量显示加密信息')
+  btn2.setAttribute('data-id', '👁️批量显示加密信息')
   btn2.setAttribute('_cid', 'show-orders-info')
   btn2.innerHTML = `<span>批量显示加密信息</span>`
   btn2.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
   divDplusButtonGroup.appendChild(btn2)
   btn2.onclick = (e) => {
-    console.log('批量查看隐藏信息')
+    console.log('批量显示敏感信息')
     showUserAddress()
   }
- 
+
   let btn3 = div.querySelector('button').cloneNode(true)
-  btn3.setAttribute('data-id', '添加复制订单按钮')
+  btn3.setAttribute('data-id', '✍️添加复制订单按钮')
   btn3.setAttribute('_cid', 'update-button')
   btn3.innerHTML = `<span>添加复制订单按钮</span>`
   btn3.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
@@ -181,23 +181,36 @@ async function addDownloadButton() {
   }
   document.querySelector('div[class^="index_middle-bar-wrapper"]').appendChild(divDplus)
 }
- 
+
 //添加复制订单信息按钮
 async function addCopyOrderInfoButton() {
   console.log("增加复制订单信息按钮")
-  if(!document.querySelector('div.auxo-spin-container > div:nth-of-type(2) > div > div[data-kora_order_status]')){
+  let tableTbody = document.querySelector('div[class^="auxo-spin-container"] div[class^="auxo-table-container"] div[class^="auxo-table-content"]  tbody[class^="auxo-table-tbody"]')
+  if(!tableTbody){
     return false
   }
-  let divList = document.querySelectorAll('div.auxo-spin-container > div:nth-of-type(2) > div > div[data-kora_order_status]')
-  //console.log(divList)
+  console.log(tableTbody)
+  let divList = tableTbody.querySelectorAll('.auxo-table-row')
+  console.log(divList)
+
+  let btnDiv = document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')
+  let nowOrderId = ''
   for (let div of divList) {
-    let tableRowId   = div.getAttribute('id')
-    let btnDiv = document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')
-    let btn = btnDiv.querySelector('button').cloneNode(true)
-    let divHeader = div.querySelector('div[class^="index_rowHeader"] div[class^="index_RowHeader"]')
-    let haveCopyBtn = divHeader.querySelector('button[data-id="复制订单"]')
-    if(haveCopyBtn == null){
-        btn.setAttribute('data-id', '复制订单')
+    let tableRowId = div.getAttribute('data-row-key')
+    console.log(tableRowId)
+    console.log(div.className)
+    let this_div_classname = div.className
+    let isHeader = this_div_classname.indexOf('auxo-table-row-level-0')
+    console.log(isHeader)
+    if(isHeader > 0){
+        nowOrderId = tableRowId
+        console.log('订单表头')
+        //订单表头
+        let btn = btnDiv.querySelector('button').cloneNode(true)
+        let divHeader = div.querySelector('div[class^="index_leftWrapper"]')
+        //let haveCopyBtn = divHeader.querySelector('button[data-id="复制订单"]')
+        //if(haveCopyBtn == null){
+        btn.setAttribute('data-id', '✍️复制订单')
         btn.setAttribute('_cid', 'copy-order-info')
         btn.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
         btn.innerHTML = `<span>复制订单信息</span>`
@@ -205,18 +218,25 @@ async function addCopyOrderInfoButton() {
         btn.onclick = (e) => {
             copyOrderInfo(tableRowId)
         }
+        //}
+        div.setAttribute('id', nowOrderId)
+    } else {
+       console.log('订单主体')
+       div.setAttribute('id', nowOrderId+'-'+tableRowId)
     }
   }
   showTips('添加复制订单按钮完成')
 }
- 
+
 // 批量显示敏感信息
 function showUserAddress () {
     console.log('批量显示敏感信息')
     let divList = document.querySelectorAll('div.auxo-spin-container > div:nth-of-type(2) > div > div[data-kora_order_status]')
+    console.log(divList)
     for (let div of divList) {
            setTimeout(function (){
                let data = extractOrderDiv(div)
+               console.log(data)
                if(data['status_id'] !== '4'){
                    let showDiv = div.querySelector('a[data-kora="查看敏感信息"]')
                    showDiv.click()
@@ -224,7 +244,7 @@ function showUserAddress () {
            },1000)
     }
 }
- 
+
 function copyOrderInfo (divid) {
     console.log('复制订单信息')
     let div = document.getElementById(divid);
@@ -240,24 +260,7 @@ function copyOrderInfo (divid) {
         showTips('复制失败!',2)
     }
 }
- 
-function getJSON(url, callback) {
-    GM_xmlhttpRequest({
-        method: 'GET',
-        url: url,
-        headers: {
-            'Accept': 'application/json'
-        },
-        onload: function (response) {
-            if (response.status >= 200 && response.status < 400) {
-                callback(JSON.parse(response.responseText), url);
-            } else {
-                callback(false, url);
-            }
-        }
-    });
-}
- 
+
 function copyMgr(data) {
     var textarea = document.createElement('textarea');
     textarea.style = 'position:absolute;top: -150px;left:0;';
@@ -276,7 +279,7 @@ function copyMgr(data) {
         return false;
     }
 }
- 
+
 async function addTableId() {
   console.log("增加列表 ID")
   if(!document.querySelector('div[class^="index_tableRow"]')){
@@ -284,17 +287,17 @@ async function addTableId() {
   }
   let divList = document.querySelectorAll('div[class^="index_tableRow"]')
   for (let div of divList) {
-      //console.log('addTableId',div)
+      console.log('addTableId',div)
       let data = extractOrderDiv(div)
       div.setAttribute('id', data['orderId'])
   }
 }
- 
+
 String.prototype.myReplace=function(f,e){//吧f替换成e
     var reg=new RegExp(f,"g"); //创建正则RegExp对象
     return this.replace(reg,e);
 }
- 
+
 function showTips (msg,type=1) {
    if(!document.querySelector('input[class^="auxo-input"]')){
        return false
@@ -305,17 +308,18 @@ function showTips (msg,type=1) {
    } else {
        inputDiv.value = '❗ '+msg
    }
- 
+
    setTimeout(function () {
      inputDiv.value = ''
    }, 3000);
 }
- 
+
 function reflesh(){
     console.log('3秒后添加按钮')
    setTimeout(function (){
        addButton()
-       let auxoDiv = document.querySelector('div[class^="index_RichTable"] div[class^="index_ListWithPagination"] div[class^="auxo-spin-container"]')
+       let auxoDiv = document.querySelector('div[class^="auxo-spin-container"]')
+       console.log(auxoDiv)
        auxoDiv.addEventListener("DOMSubtreeModified", function(){
              let divList = document.querySelectorAll('div[class^="index_tableRow"]')
              for (let div of divList) {
@@ -325,7 +329,7 @@ function reflesh(){
        }, false);
    }, 3000 )
 }
- 
+
 //监视地址栏
 function registerPopstate(){
     console.log('监听地址栏')
@@ -337,7 +341,7 @@ function registerPopstate(){
         }
     })
 }
- 
+
 function addButton () {
    console.log('添加按钮')
    addTableId()
@@ -346,7 +350,7 @@ function addButton () {
    setTimeout(function (){
    },10000)
 }
- 
+
 (async function () {
     'use strict';
     registerPopstate()
