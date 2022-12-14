@@ -47,10 +47,13 @@ function toCsvString(dataList) {
 }
 
 // 将订单 div里的内容处理成对象
-function extractOrderDiv(div) {
+function extractOrderDiv(divid) {
   let resp = {}
-  let header = div.querySelector('div[class^="index_rowHeader"] > div[class^="index_RowHeader"] > div[class^="index_leftWrapper"]')
+  let div = document.getElementById(divid)
+  let header = div.querySelector('div[class^="index_RowHeader"] > div[class^="index_leftWrapper"]')
+  console.log(header)
   let spanList = header.querySelectorAll('span')
+  console.log(spanList)
   if (spanList.length >= 1) {
     resp.orderId = spanList[0].innerText.match(/订单编号\s*(\d+)/)[1]
     resp.extOrderId = "'"+spanList[0].innerText.match(/订单编号\s*(\d+)/)[1]
@@ -58,12 +61,10 @@ function extractOrderDiv(div) {
   if (spanList.length >= 2) {
     resp.orderTime = spanList[1].innerText.match(/下单时间\s*([\d\/ :]+)/)[1]
   }
-  if (spanList.length >= 3) {
-    resp.sourceType = spanList[2].innerText.match(/推广类型：\s*(.*)/)[1]
-  } else {
-      resp.sourceType = '-'
-  }
 
+
+  let divList = document.querySelectorAll('tr.child-'+divid)
+  console.log(divList)
   // content
   //let content = div.querySelector('div:nth-of-type(2)')
   resp.products = []
@@ -79,9 +80,10 @@ function extractOrderDiv(div) {
       }
   }
 
-  resp.payAmount = div.querySelector('div[class^="index_payAmount"]').innerText
-  resp.nickname = div.querySelector('a[class^="table_nickname"]').innerText
-  resp.contact = div.querySelector('div[class^="index_locationDetail"]').innerText
+  let orderInfoDiv = divList[0]
+  resp.payAmount = orderInfoDiv.querySelector('div[class^="index_payAmount"]').innerText
+  resp.nickname = orderInfoDiv.querySelector('a[class^="table_nickname"]').innerText
+  resp.contact = orderInfoDiv.querySelector('div[class^="index_locationDetail"]').innerText
   resp.contact = resp.contact.myReplace(',','').myReplace('#','')
   let contactList = resp.contact.split('\n')
   if (contactList.length >= 3) {
@@ -89,10 +91,12 @@ function extractOrderDiv(div) {
     resp.contactPhone = contactList[1]
     resp.contactAddress = contactList[2].myReplace(',','').myReplace('#','')
   }
-  resp.status = div.querySelector('div:nth-of-type(2) > div[class^="index_cell"]:nth-of-type(4) > div:first-of-type').innerText
-  resp.status_id = div.getAttribute('data-kora_order_status')
+  resp.status = orderInfoDiv.querySelector('div:nth-of-type(2) > div[class^="index_cell"]:nth-of-type(4) > div:first-of-type').innerText
+  resp.status_id = orderInfoDiv.getAttribute('data-kora_order_status')
 
-  let footer = div.querySelector('div[class^="index_footer"]')
+  console.log(resp)
+  return false
+  let footer = orderInfoDiv.querySelector('div[class^="index_footer"]')
   resp.shop_remark = ''
   resp.buyer_remark = ''
   if(footer){
@@ -221,8 +225,16 @@ async function addCopyOrderInfoButton() {
         //}
         div.setAttribute('id', nowOrderId)
     } else {
-       console.log('订单主体')
-       div.setAttribute('id', nowOrderId+'-'+tableRowId)
+       console.log(this_div_classname)
+       if(this_div_classname.indexOf('auxo-pair-group-row-last') > 0){
+           //最后一行  备注
+           div.className = div.className + ' remark-' + nowOrderId
+       }else {
+            console.log('订单表体')
+           div.className = div.className + ' child-' + nowOrderId
+       }
+       //div.setAttribute('id', nowOrderId+'-'+tableRowId)
+       //div.className = div.className + ' child' + nowOrderId
     }
   }
   showTips('添加复制订单按钮完成')
@@ -247,8 +259,8 @@ function showUserAddress () {
 
 function copyOrderInfo (divid) {
     console.log('复制订单信息')
-    let div = document.getElementById(divid);
-    let data = extractOrderDiv(div)
+    console.log(divid)
+    let data = extractOrderDiv(divid)
     //console.log(data)
     let copyInfo = data['orderId'] + '\n' + data['orderTime'] + '\n' + data['contact'] +  '\n' + data['title'] +   ' ' +data['sku'] +  '\n' + data['status']
     var c = copyMgr(copyInfo);
