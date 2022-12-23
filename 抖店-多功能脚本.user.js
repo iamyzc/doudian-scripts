@@ -61,26 +61,32 @@ function extractOrderDiv(divid) {
   if (spanList.length >= 2) {
     resp.orderTime = spanList[1].innerText.match(/下单时间\s*([\d\/ :]+)/)[1]
   }
-
-
-  let divList = document.querySelectorAll('tr.child-'+divid)
-  console.log(divList)
+    //5003253548256773210
+  //商品div
+  let productsDivList = document.querySelectorAll('tr.child-'+divid)
+  console.log(productsDivList)
   // content
   //let content = div.querySelector('div:nth-of-type(2)')
   resp.products = []
-  let products = div.querySelectorAll('div[class^="index_cellCol"] > div[class^="index_cellRow"]')
-  if(products) {
-      for (let p of products) {
+  //let products = div.querySelectorAll('div[class^="index_cellCol"] > div[class^="index_cellRow"]')
+  if(productsDivList) {
+      for (let p of productsDivList) {
           let productsItem = {}
-          productsItem.title = p.querySelector('div[class^="style_detail"] > div[class^="style_name"]').innerText
-          productsItem.sku =  p.querySelector('div[class^="style_property"] > div[class^="style_desc"]').innerText
-          productsItem.unitPrice = p.querySelector('div[class^="index_cell"]:nth-of-type(2) > div[class^="table_comboAmount"]').innerText
-          productsItem.number = p.querySelector('div[class^="index_cell"]:nth-of-type(2) > div[class^="table_comboNum"]').innerText
+          let td_list = p.querySelectorAll('td')
+          productsItem.title = td_list[1].querySelector('div[class^="style_detail"] > div[class^="style_name"]').innerText
+          productsItem.sku =  td_list[1].querySelector('div[class^="style_property"] > div[class^="style_desc"]').innerText.split('x')[0]
+          price_text_arr = td_list[2].innerText.split('\n')
+          productsItem.unitPrice = price_text_arr[0].myReplace('¥','')
+          productsItem.number = price_text_arr[1].myReplace('x','')
+          //productsItem.number = p.querySelector('div[class^="index_cell"]:nth-of-type(2) > div[class^="table_comboNum"]').innerText
           resp.products.push(productsItem)
       }
   }
 
-  let orderInfoDiv = divList[0]
+ console.log(resp)
+
+  let orderInfoDiv = productsDivList[0]
+  console.log(orderInfoDiv)
   resp.payAmount = orderInfoDiv.querySelector('div[class^="index_payAmount"]').innerText
   resp.nickname = orderInfoDiv.querySelector('a[class^="table_nickname"]').innerText
   resp.contact = orderInfoDiv.querySelector('div[class^="index_locationDetail"]').innerText
@@ -91,12 +97,12 @@ function extractOrderDiv(divid) {
     resp.contactPhone = contactList[1]
     resp.contactAddress = contactList[2].myReplace(',','').myReplace('#','')
   }
-  resp.status = orderInfoDiv.querySelector('div:nth-of-type(2) > div[class^="index_cell"]:nth-of-type(4) > div:first-of-type').innerText
-  resp.status_id = orderInfoDiv.getAttribute('data-kora_order_status')
+  let td_list = orderInfoDiv.querySelectorAll('td')
+  resp.status = td_list[6].querySelector('div').innerText
+  //resp.status_id = orderInfoDiv.getAttribute('data-kora_order_status')
 
-  console.log(resp)
-  return false
-  let footer = orderInfoDiv.querySelector('div[class^="index_footer"]')
+  //console.log(resp)
+  let footer = document.querySelector('tr.remark-'+divid)
   resp.shop_remark = ''
   resp.buyer_remark = ''
   if(footer){
@@ -111,6 +117,7 @@ function extractOrderDiv(divid) {
           }
       }
   }
+  console.log(resp)
   return resp
 }
 
@@ -137,9 +144,9 @@ async function downloadCurrentPage() {
 // 添加“下载订单”按钮
 async function addDownloadButton() {
   console.log('增加下载订单按钮')
-   if(!document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')){
+  if(!document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')){
        return false
-   }
+  }
 
   let div = document.querySelector('div[class^="index_middle-bar-wrapper"] div[class^="index_batchOpWrap"] div[class^="index_buttonGroup"]')
 
@@ -174,7 +181,7 @@ async function addDownloadButton() {
   }
 
   let btn3 = div.querySelector('button').cloneNode(true)
-  btn3.setAttribute('data-id', '✍️添加复制订单按钮')
+  btn3.setAttribute('copy-btn-id', '✍️添加复制订单按钮')
   btn3.setAttribute('_cid', 'update-button')
   btn3.innerHTML = `<span>添加复制订单按钮</span>`
   btn3.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
@@ -209,32 +216,40 @@ async function addCopyOrderInfoButton() {
     if(isHeader > 0){
         nowOrderId = tableRowId
         console.log('订单表头')
+
+
         //订单表头
         let btn = btnDiv.querySelector('button').cloneNode(true)
         let divHeader = div.querySelector('div[class^="index_leftWrapper"]')
-        //let haveCopyBtn = divHeader.querySelector('button[data-id="复制订单"]')
-        //if(haveCopyBtn == null){
-        btn.setAttribute('data-id', '✍️复制订单')
-        btn.setAttribute('_cid', 'copy-order-info')
-        btn.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe'
-        btn.innerHTML = `<span>复制订单信息</span>`
-        divHeader.appendChild(btn)
-        btn.onclick = (e) => {
-            copyOrderInfo(tableRowId)
+        let haveCopyBtn = divHeader.querySelector('button[data-id="复制订单"]')
+        if(haveCopyBtn == null){
+           btn.setAttribute('data-id', '复制订单')
+           btn.setAttribute('_cid', 'copy-order-info')
+           btn.className = 'auxo-btn auxo-btn-primary auxo-btn-sm index_button__fQrwe copy-btn'
+           btn.innerHTML = `<span>复制订单信息</span>`
+           divHeader.appendChild(btn)
+           btn.onclick = (e) => {
+               copyOrderInfo(tableRowId)
+           }
         }
-        //}
         div.setAttribute('id', nowOrderId)
     } else {
        console.log(this_div_classname)
        if(this_div_classname.indexOf('auxo-pair-group-row-last') > 0){
-           //最后一行  备注
-           div.className = div.className + ' remark-' + nowOrderId
+           let this_div_row_key = div.getAttribute('data-row-key')
+           console.log(this_div_row_key)
+           if(this_div_row_key.indexOf('ild') > 0){
+               console.log('订单表体')
+               div.className = div.className + ' child-' + nowOrderId
+           }else {
+               //最后一行  备注
+               div.className = div.className + ' remark-' + nowOrderId
+           }
+
        }else {
             console.log('订单表体')
            div.className = div.className + ' child-' + nowOrderId
        }
-       //div.setAttribute('id', nowOrderId+'-'+tableRowId)
-       //div.className = div.className + ' child' + nowOrderId
     }
   }
   showTips('添加复制订单按钮完成')
@@ -262,7 +277,12 @@ function copyOrderInfo (divid) {
     console.log(divid)
     let data = extractOrderDiv(divid)
     //console.log(data)
-    let copyInfo = data['orderId'] + '\n' + data['orderTime'] + '\n' + data['contact'] +  '\n' + data['title'] +   ' ' +data['sku'] +  '\n' + data['status']
+    let copyInfo = data['orderId'] + '\n' + data['orderTime'] + '\n' + data['contact'] +  '\n'
+    for (let p of data['products']) {
+         copyInfo += p['title'] +'['+p['sku']+'] * ' + p['number'] +  '\n'
+    }
+
+    copyInfo +=  data['status']
     var c = copyMgr(copyInfo);
     if(c){
         console.log('复制成功')
